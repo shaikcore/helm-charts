@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: swagger-ui
+  namespace: {{ .Values.global.namespace }}
+data:
+  {{- (.Files.Glob "html/*.html").AsConfig | nindent 2 }}

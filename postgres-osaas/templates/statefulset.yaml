@@ -1,0 +1,2 @@
+# statefulset.yaml
+{{- template "common.statefulset" . -}}

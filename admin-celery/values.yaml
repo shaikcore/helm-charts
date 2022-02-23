@@ -1,0 +1,65 @@
+# Default values for service-cloud.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+namespace: service-cloud-dev
+
+# Common Labels
+labels:
+  app: "admin-celery"
+
+# Container Configs
+image:
+  repository: "shaikcoredge/admin_portal_sso"
+  pullPolicy: IfNotPresent
+  tag: "latest"
+replicas: "1"
+httpPort: 5000
+resources: |
+  requests:
+    cpu: 100m
+    memory: 256Mi
+tracing-enabled: false
+
+env: |
+  - name: FLASK_CONFIG
+    value: "production"
+  - name: DB_HOST
+    value: "postgres"
+  - name: DB_PORT
+    value: "5432"
+  - name: CONSOLE_PROXY
+    value: "http://serviceconsole.cloud.gov.in"
+  - name: POSTGRES_USER
+    valueFrom:
+      secretKeyRef:
+        name: postgres
+        key: POSTGRES_USER
+  - name: POSTGRES_DB
+    valueFrom:
+      secretKeyRef:
+        name: postgres
+        key: POSTGRES_DB
+  - name: POSTGRES_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: postgres
+        key: POSTGRES_PASSWORD
+  - name: SMS_SERVICE_USERID 
+    valueFrom:
+      secretKeyRef:
+        name: sms
+        key: SMS_SERVICE_USERID
+  - name: SMS_SERVICE_USERPIN
+    valueFrom:
+      secretKeyRef:
+        name: sms
+        key: SMS_SERVICE_USERPIN
+
+envFrom: |
+  - secretRef:
+      name: postgres
+      optional: false
+  - secretRef:
+      name: sms
+      optional: false
+

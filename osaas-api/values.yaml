@@ -1,0 +1,39 @@
+# Default values for service-cloud.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+#namespace: service-cloud-dev
+# Common Labels
+labels:
+  app: "osaas-api"
+
+# Container Configs
+image:
+  repository: "chub.cloud.gov.in/service-cloud-dev/object-storage-middleware"
+  pullPolicy: IfNotPresent
+  tag: "v240920211811"
+replicas: "1"
+httpPort: 5000
+resources: |
+  requests:
+    cpu: 100m
+    memory: 256Mi
+tracing-enabled: false
+
+env: |
+  - name: FLASK_CONFIG
+    value: "production"
+  - name: DB_PORT
+    value: "5432"
+  - name: DB_HOST
+    value: "postgres-osaas"
+  - name: CONSOLE_PROXY
+    value: "https://serviceconsole.cloud.gov.in"
+
+volumes: |
+  - name: osaas-swagger-ui
+    configMap: 
+      name: osaas-swagger-ui
+
+volumeMounts: |
+  - name: osaas-swagger-ui
+    mountPath: /opt/www/app/templates 

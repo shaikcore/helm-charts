@@ -3,16 +3,146 @@ entries:
   admin:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2022-02-23T15:18:53.730024+05:30"
+    created: "2022-02-23T15:27:24.766742+05:30"
     dependencies:
     - name: common
       repository: file://../../common
       version: 0.0.5
     description: A Helm chart for Kubernetes
-    digest: 29abc8d7dad1e9dc0a2b5b9bdb6b14141814c9ea24dfcfce28b868a29c87c1a6
+    digest: ad16c66307484530ae808581f35320692569a3f3f680b5f1d4649d631496bba6
     name: admin
     type: application
     urls:
     - https://shaikcore.github.io/helm-charts/admin-0.1.0.tgz
     version: 0.1.0
-generated: "2022-02-23T15:18:53.727456+05:30"
+  admin-api:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-02-23T15:27:24.769668+05:30"
+    dependencies:
+    - name: common
+      repository: file://../../common
+      version: 0.0.5
+    description: A Helm chart for Kubernetes
+    digest: 937b0fcd7cbe73a165ab478d9c1fd1565313a827d27babc3286e2a3207d5d9af
+    name: admin-api
+    type: application
+    urls:
+    - https://shaikcore.github.io/helm-charts/admin-api-0.1.0.tgz
+    version: 0.1.0
+  admin-celery:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-02-23T15:27:24.772248+05:30"
+    dependencies:
+    - name: common
+      repository: file://../../common
+      version: 0.0.5
+    description: A Helm chart for Kubernetes
+    digest: e470847a955d28e6025e4cb745b8fa66bf2da60db57dcd6966f29cafc9656e0d
+    name: admin-celery
+    type: application
+    urls:
+    - https://shaikcore.github.io/helm-charts/admin-celery-0.1.0.tgz
+    version: 0.1.0
+  api:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-02-23T15:27:24.779548+05:30"
+    dependencies:
+    - name: common
+      repository: file://../../common
+      version: 0.0.5
+    description: A Helm chart for Kubernetes
+    digest: 5fa6a90ff011b41d30da27776e7c3dfa2e65aa8b12addb113df55a78e5886457
+    name: api
+    type: application
+    urls:
+    - https://shaikcore.github.io/helm-charts/api-0.1.0.tgz
+    version: 0.1.0
+  apirevproxy:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-02-23T15:27:24.783989+05:30"
+    dependencies:
+    - name: common
+      repository: file://../../common
+      version: 0.0.5
+    description: A Helm chart for Kubernetes
+    digest: 1e82bbbf38b62545240c2a4241f5cff02c3a3003697be2dbbac0276991b158ac
+    name: apirevproxy
+    type: application
+    urls:
+    - https://shaikcore.github.io/helm-charts/apirevproxy-0.1.0.tgz
+    version: 0.1.0
+  celery:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-02-23T15:27:24.786682+05:30"
+    dependencies:
+    - name: common
+      repository: file://../../common
+      version: 0.0.5
+    description: A Helm chart for Kubernetes
+    digest: 804a0ebdf58eb243a8622754ad4f3556a360d5cefb224d18c4c9aba66678eab2
+    name: celery
+    type: application
+    urls:
+    - https://shaikcore.github.io/helm-charts/celery-0.1.0.tgz
+    version: 0.1.0
+  common:
+  - apiVersion: v1
+    appVersion: 0.0.5
+    created: "2022-02-23T15:27:24.788374+05:30"
+    description: base chartbuilding components and helpers
+    digest: 1c464f10440226e30cf52e9b45cfcc6a928b33c49fc033a6a8093fb856ea2701
+    name: common
+    urls:
+    - https://shaikcore.github.io/helm-charts/common-0.0.5.tgz
+    version: 0.0.5
+  console:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-02-23T15:27:24.792834+05:30"
+    dependencies:
+    - name: common
+      repository: file://../../common
+      version: 0.0.5
+    description: A Helm chart for Kubernetes
+    digest: 45c8caddad908378b3376ab2c96f2de23aaba58101b72c2d55cc380cbfce187d
+    name: console
+    type: application
+    urls:
+    - https://shaikcore.github.io/helm-charts/console-0.1.0.tgz
+    version: 0.1.0
+  frontend:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-02-23T15:27:24.796167+05:30"
+    dependencies:
+    - name: common
+      repository: file://../../common
+      version: 0.0.5
+    description: A Helm chart for Kubernetes
+    digest: d74ba0c214051eac90b74403d91855eb0ec85bd7aadb0cfcf2b00c082e2c8856
+    name: frontend
+    type: application
+    urls:
+    - https://shaikcore.github.io/helm-charts/frontend-0.1.0.tgz
+    version: 0.1.0
+  osaas-api:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-02-23T15:27:24.800103+05:30"
+    dependencies:
+    - name: common
+      repository: file://../../common
+      version: 0.0.5
+    description: A Helm chart for Kubernetes
+    digest: 8dc13d37aa2f7dca0042e6682548d82f350d736f336d0e5ebce907bc38263570
+    name: osaas-api
+    type: application
+    urls:
+    - https://shaikcore.github.io/helm-charts/osaas-api-0.1.0.tgz
+    version: 0.1.0
+generated: "2022-02-23T15:27:24.758161+05:30"
