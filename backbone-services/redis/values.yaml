@@ -1,0 +1,21 @@
+# Default values for egov-finance.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+namespace: backbone 
+
+# Common Labels
+labels:
+  app: "redis"
+
+# Container Configs
+image:
+  repository: "shaikcoredge/redis"
+  pullPolicy: IfNotPresent
+  tag: "latest"
+replicas: "1"
+httpPort: 6379
+
+env: |
+  - name: ALLOW_EMPTY_PASSWORD
+    value: "yes"
+

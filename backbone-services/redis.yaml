@@ -1,0 +1,54 @@
+---
+# Source: redis/templates/service.yaml
+# service.yaml---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  annotations:
+  labels:
+    app: redis
+spec:
+  selector:
+    app: redis
+  ports:
+  - name: http
+    port: 6379
+    targetPort: 6379
+---
+# Source: redis/templates/deployment.yaml
+# deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  labels:
+    app: redis
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        deployment-timestamp: "20220124125531"
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: chub.cloud.gov.in/library/redis:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 6379
+              protocol: TCP
+          env:
+            - name: ALLOW_EMPTY_PASSWORD
+              value: "yes"
+
+          resources:

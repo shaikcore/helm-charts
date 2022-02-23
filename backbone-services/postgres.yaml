@@ -1,0 +1,222 @@
+---
+# Source: postgres/templates/registry.yaml
+# registry.yaml---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: chub
+  namespace: middleware
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: eyJhdXRocyI6eyJjaHViLmNsb3VkLmdvdi5pbiI6eyJ1c2VybmFtZSI6IiUhcyg8bmlsPikiLCJwYXNzd29yZCI6IiUhcyg8bmlsPikiLCJlbWFpbCI6IiUhcyg8bmlsPikiLCJhdXRoIjoiSlNGektEeHVhV3crS1RvbElYTW9QRzVwYkQ0cCJ9fX0=
+---
+# Source: postgres/templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres
+  namespace: middleware
+type: Opaque
+data:
+  POSTGRES_USER: bWlkZGxld2FyZV91c2Vy
+  POSTGRES_PASSWORD: TWlkZGxld2FyZUAwMTAxMjAxOQ==
+  POSTGRES_DB: bWlkZGxld2FyZV9wcm9kdWN0aW9uX2Ri
+---
+# Source: postgres/templates/pv.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-pv
+  labels:
+    app: "postgres"
+    group: "db"
+spec:
+  storageClassName: cephblock
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+   path: "/niccloud/postgresql"
+---
+# Source: postgres/templates/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data
+  namespace: middleware
+spec:
+  storageClassName: cephblock
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+---
+# Source: postgres/templates/service.yaml
+# service.yaml---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-h
+  namespace: middleware
+  annotations:
+  labels:
+    app: postgres      
+    group: db
+spec:
+  selector:
+    app: postgres      
+    group: db
+  clusterIP: None
+  ports:
+  - name: http
+    port: 5432
+    targetPort: 5432
+---
+# Source: postgres/templates/deployment.yaml
+# deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: middleware
+  labels:
+    app: postgres      
+    group: db   
+spec:
+  selector:
+    matchLabels:
+      app: postgres      
+      group: db
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0     
+  replicas: 1
+  template:
+    metadata:  
+      annotations:
+        deployment-timestamp: "20220124204614"        
+      labels:
+        app: postgres      
+        group: db            
+    spec:          
+      containers:    
+        - name: postgres
+          image: chub.cloud.gov.in/service-cloud/postgres:middle
+          imagePullPolicy: IfNotPresent             
+          ports:
+            - name: http
+              containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /niccloud/postgresql
+              name: data-pv
+                         
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: POSTGRES_USER
+            - name:  POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: POSTGRES_DB 
+                                                 
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            
+      volumes:
+        - name: data-pv
+          persistentVolumeClaim:
+            claimName: data
+---
+# Source: postgres/templates/statefulset.yaml
+# statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: middleware
+  labels:
+    app: postgres      
+    group: db
+spec:
+  selector:
+    matchLabels:
+      app: postgres      
+      group: db
+  replicas: 1
+  serviceName: postgres
+  template:
+    metadata:
+      annotations:
+        deployment-timestamp: "20220124204614"
+      labels:
+        app: postgres      
+        group: db
+    spec:
+      initContainers:      
+      - command:
+        - /bin/sh
+        - -cx
+        - |2
+
+          mkdir -p /niccloud/postgresql/data
+          chmod -R 777 /niccloud/postgresql
+          find /niccloud/postgresql -mindepth 1 -maxdepth 1 -not -name ".snapshot" -not -name "lost+found" | \
+            xargs chown -R 1001:1001
+        name: init-chmod-data
+        image: chub.cloud.gov.in/service-cloud/bitnami/minideb:buster
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+            - mountPath: /niccloud/postgresql
+              name: data-pv
+            
+      containers:
+        - name: postgres
+          image: chub.cloud.gov.in/service-cloud/postgres:middle
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /niccloud/postgresql
+              name: data-pv
+            
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: POSTGRES_USER
+            - name:  POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: POSTGRES_DB 
+            
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            
+      volumes:
+        - name: data-pv
+          persistentVolumeClaim:
+            claimName: data

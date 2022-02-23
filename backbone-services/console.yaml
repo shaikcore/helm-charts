@@ -1,0 +1,74 @@
+---
+# Source: console/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: console-conf
+  namespace: middleware
+data:
+  default.conf: "upstream nova-OSP-PS-NDCSP {\n  server 10.246.171.9:6080 fail_timeout=0;\n} \nupstream nova-OSP-PS-NDCBBSR {\n  server 10.194.176.10:6080 fail_timeout=0;\n}\nupstream nova-OSP-PS2-NDCBBSR {\n  server 10.194.188.9:6080 fail_timeout=0;\n}\nserver {\n    listen 80;\n    proxy_redirect off; \n    server_tokens off;   \n    location /OSP-PS-NDCSP/websockify {\n      proxy_pass http://nova-OSP-PS-NDCSP/websockify;\n      proxy_set_header Host $host;\n      proxy_http_version 1.1;\n      proxy_read_timeout 86400;\n      proxy_set_header Upgrade $http_upgrade;\n      proxy_set_header Connection \"upgrade\";\n    }\n    location /OSP-PS-NDCSP/ {\n      rewrite ^/OSP-PS-NDCSP/(.*) /$1 break;\n      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n      proxy_set_header X-Real-IP $remote_addr;\n      proxy_set_header X-Forwarded-Host $host;\n      proxy_set_header X-Forwarded-Server $host;\n      proxy_set_header x-forwarded-proto https;\n      proxy_set_header Host $host;\n      proxy_http_version 1.1;\n      proxy_read_timeout 86400;\n      proxy_pass http://nova-OSP-PS-NDCSP;\n      proxy_set_header Upgrade $http_upgrade;\n      proxy_set_header Connection \"upgrade\";\n    }\n\n    location /OSP-PS-NDCBBSR/websockify {\n      proxy_pass http://nova-OSP-PS-NDCBBSR/websockify;\n      proxy_set_header Host $host;\n      proxy_http_version 1.1;\n      proxy_read_timeout 86400;\n      proxy_set_header Upgrade $http_upgrade;\n      proxy_set_header Connection \"upgrade\";\n    }\n    location /OSP-PS-NDCBBSR/ {\n      rewrite ^/OSP-PS-NDCBBSR/(.*) /$1 break;\n      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n      proxy_set_header X-Real-IP $remote_addr;\n      proxy_set_header X-Forwarded-Host $host;\n      proxy_set_header X-Forwarded-Server $host;\n      proxy_set_header x-forwarded-proto https;\n      proxy_set_header Host $host;\n      proxy_http_version 1.1;\n      proxy_read_timeout 86400;\n      proxy_pass http://nova-OSP-PS-NDCBBSR;\n      proxy_set_header Upgrade $http_upgrade;\n      proxy_set_header Connection \"upgrade\";\n    }\n    location /OSP-PS2-NDCBBSR/websockify {\n      proxy_pass http://nova-OSP-PS2-NDCBBSR/websockify;\n      proxy_set_header Host $host;\n      proxy_http_version 1.1;\n      proxy_read_timeout 86400;\n      proxy_set_header Upgrade $http_upgrade;\n      proxy_set_header Connection \"upgrade\";\n    }\n    location /OSP-PS2-NDCBBSR/ {\n      rewrite ^/OSP-PS2-NDCBBSR/(.*) /$1 break;\n      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n      proxy_set_header X-Real-IP $remote_addr;\n      proxy_set_header X-Forwarded-Host $host;\n      proxy_set_header X-Forwarded-Server $host;\n      proxy_set_header x-forwarded-proto https;\n      proxy_set_header Host $host;\n      proxy_http_version 1.1;\n      proxy_read_timeout 86400;\n\n      proxy_pass http://nova-OSP-PS2-NDCBBSR;\n\n      proxy_set_header Upgrade $http_upgrade;\n      proxy_set_header Connection \"upgrade\";\n    }\n}\n"
+---
+# Source: console/templates/service.yaml
+# service.yaml---
+apiVersion: v1
+kind: Service
+metadata:
+  name: console
+  namespace: middleware
+  annotations:
+  labels:
+    app: console
+spec:
+  selector:
+    app: console
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+---
+# Source: console/templates/deployment.yaml
+# deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: console
+  namespace: middleware
+  labels:
+    app: console
+spec:
+  selector:
+    matchLabels:
+      app: console
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        deployment-timestamp: "20220124125223"
+      labels:
+        app: console
+    spec:
+      containers:
+        - name: console
+          image: chub.cloud.gov.in/service-cloud/consoleproxy:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - name: console-conf
+              mountPath:  /etc/nginx/conf.d/
+
+          env:
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+
+      volumes:
+        - name: console-conf
+          configMap:
+            name: console-conf

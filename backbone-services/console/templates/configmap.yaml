@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: console-conf
+  namespace: {{ .Values.global.namespace }}
+data:
+  {{- (.Files.Glob "conf/default.conf").AsConfig | nindent 2 }}

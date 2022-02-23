@@ -1,0 +1,40 @@
+labels:
+  app: "postgres-osaas"
+  group: "db"
+namespace: service-cloud-dev
+
+image:
+  repository: "chub.cloud.gov.in/service-cloud-dev/postgres-osaas"
+  tag: "v26072021"
+replicas: "1"
+httpPort: 5432
+
+resources: |
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+tracing-enabled: false
+
+env: |
+  - name: POSTGRESQL_VOLUME_DIR 	
+    value: "/niccloud/postgresql"
+  - name: POSTGRESQL_USERNAME 	
+    value: "api_user"
+  - name: POSTGRESQL_PORT_NUMBER 	
+    value: "5432"
+  - name: POSTGRESQL_PASSWORD 	
+    value: "password"
+  - name: POSTGRESQL_ENABLE_LDAP 	
+    value: "no"
+  - name: POSTGRESQL_DATABASE 	
+    value: "apidb"
+  - name: PGDATA 	
+    value: "/niccloud/postgresql/data"
+  - name: BITNAMI_DEBUG 	
+    value: "false"
+extraVolumeMounts: |
+  - name: osaas-volumes
+    mountPath: /niccloud/postgresql
+extraVolumes: |
+  - name: osaas-volumes

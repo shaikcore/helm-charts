@@ -1,0 +1,2 @@
+# registry.yaml
+{{- template "common.registry" . -}}

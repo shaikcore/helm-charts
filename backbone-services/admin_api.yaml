@@ -1,0 +1,379 @@
+---
+# Source: admin-api/templates/secrets.yaml
+apiVersion: v1
+data:
+  POSTGRES_DB: bWlkZGxld2FyZV9wcm9kdWN0aW9uX2Ri
+  POSTGRES_PASSWORD: TWlkZGxld2FyZUAwMTAxMjAxOQ==
+  POSTGRES_USER: bWlkZGxld2FyZV91c2Vy
+kind: Secret
+metadata:
+  name: postgres
+  namespace: middleware
+type: Opaque
+---
+# Source: admin-api/templates/secrets.yaml
+apiVersion: v1
+data:
+  SMS_SERVICE_USERID: Y2xvdWRuaWMub3Rw
+  SMS_SERVICE_USERPIN: MWJnOGpvcWo=
+kind: Secret
+metadata:
+  name: sms
+  namespace: middleware
+type: Opaque
+---
+# Source: admin-api/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: admin-swagger-ui
+  namespace: middleware
+data:
+  authorize.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>Authorization</title>
+    </head>
+    <body>
+      <p>Client: {{ client.client_id }}</p>
+      <p>User: {{ user.username }}</p>
+      <form action="/auth/oauth2/authorize" method="post">
+        <p>Allow access?</p>
+        <input type="hidden" name="client_id" value="{{ client.client_id }}">
+        <input type="hidden" name="scope" value="{{ scopes|join(' ') }}">
+        <input type="hidden" name="response_type" value="{{ response_type }}">
+        <input type="hidden" name="redirect_uri" value="{{ redirect_uri }}">
+        {% if state %}
+        <input type="hidden" name="state" value="{{ state }}">
+        {% endif %}
+        <input type="submit" name="confirm" value="yes">
+        <input type="submit" name="confirm" value="no">
+      </form>
+    </body>
+    </html>
+  home.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title></title>
+    </head>
+    <body>
+      {% if user %}
+        <p>You are {{ user.username }}</p>
+      {% else %}
+        <p>You are not authenticated</p>
+      {% endif %}
+  
+      <p>Type any username:</p>
+      <form method="post" action="/auth/">
+        <input type="text" name="username">
+        <input type="submit">
+      </form>
+    </body>
+    </html>
+  swagger-ui-css.html: |
+    <link rel="stylesheet" type="text/css" href="{{ swagger_static('swagger-ui.css') }}" >
+  swagger-ui-libs.html: |
+    <!-- <script src="{{ swagger_static('bower/swagger-ui/dist/lib/jquery-1.8.0.min.js') }}" type="text/javascript"></script>
+    <script src="{{ swagger_static('bower/swagger-ui/dist/lib/jquery.slideto.min.js') }}" type="text/javascript"></script>
+    <script src="{{ swagger_static('bower/swagger-ui/dist/lib/jquery.wiggle.min.js') }}" type="text/javascript"></script>
+    <script src="{{ swagger_static('bower/swagger-ui/dist/lib/jquery.ba-bbq.min.js') }}" type="text/javascript"></script>
+    <script src="{{ swagger_static('bower/swagger-ui/dist/lib/handlebars-4.0.5.js') }}" type="text/javascript"></script>
+    <script src="{{ swagger_static('bower/swagger-ui/dist/lib/lodash.min.js') }}" type="text/javascript"></script>
+    <script src="{{ swagger_static('bower/swagger-ui/dist/lib/backbone-min.js') }}" type="text/javascript"></script>
+    {% if config.DEBUG %}
+    <script src="{{ swagger_static('bower/swagger-ui/dist/swagger-ui.js') }}" type="text/javascript"></script>
+    {% else %}
+    <script src="{{ swagger_static('bower/swagger-ui/dist/swagger-ui.min.js') }}" type="text/javascript"></script>
+    {% endif %}
+    <script src="{{ swagger_static('bower/swagger-ui/dist/lib/highlight.9.1.0.pack.js') }}" type="text/javascript"></script>
+    <script src="{{ swagger_static('bower/swagger-ui/dist/lib/jsoneditor.min.js') }}" type='text/javascript'></script>
+    <script src="{{ swagger_static('bower/swagger-ui/dist/lib/marked.js') }}" type="text/javascript"></script> -->
+  
+    <script src="{{ swagger_static('swagger-ui-bundle.js') }}" type="text/javascript"></script>
+    <script src="{{ swagger_static('swagger-ui-standalone-preset.js') }}" type='text/javascript'></script>
+    <link rel="stylesheet" type="text/css" href="{{ swagger_static('swagger-ui.css') }}" >
+    <!-- enabling this will enable oauth2 implicit scope support -->
+    <!--script src="{{ swagger_static('bower/swagger-ui/dist/lib/swagger-oauth.js') }}" type="text/javascript"></script-->
+  swagger-ui-v2.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>{{ title }}</title>
+        {% include 'swagger-ui-css.html' %}
+        {% include 'swagger-ui-libs.html' %}
+        <script type="text/javascript">
+            // NOTE: `onOAuthComplete` implementation is extracted from the deprecated swagger-ui/lib/swagger-oauth.js
+            onOAuthComplete = function onOAuthComplete(token, OAuthSchemeKey) {
+  
+              if (token === '') {
+                alert("Authorization failed for unknown reason, please, check your credentials!")
+                return
+              }
+  
+              if(token.error) {
+                var checkbox = $('input[type=checkbox],.secured')
+                checkbox.each(function(pos) {
+                    checkbox[pos].checked = false
+                })
+                alert(token.error)
+              }
+              else {
+                var access_token = token[window.swaggerUiAuth.tokenName]
+  
+                if (!OAuthSchemeKey) {
+                  OAuthSchemeKey = token.state;
+                }
+  
+                if(access_token) {
+                  // if all roles are satisfied
+                  window.swaggerUi.api.clientAuthorizations.add(OAuthSchemeKey, new SwaggerClient.ApiKeyAuthorization('Authorization', 'Bearer ' + access_token, 'header'))
+                  window.swaggerUi.load()
+                }
+              }
+            }
+  
+            $(function () {
+                window.swaggerUi = new SwaggerUi({
+                    url: "{{ specs_url }}",
+                    validatorUrl: "{{ config.SWAGGER_VALIDATOR_URL }}" || null,
+                    dom_id: "swagger-ui-container",
+                    supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch', 'options'],
+                    onComplete: function(swaggerApi, swaggerUi){
+                        if(typeof initOAuth == "function") {
+                            {% if config.SWAGGER_UI_OAUTH_CLIENT_ID -%}
+                                initOAuth({
+                                    clientId: "{{ config.SWAGGER_UI_OAUTH_CLIENT_ID }}",
+                                    realm: "{{ config.SWAGGER_UI_OAUTH_REALM }}",
+                                    appName: "{{ config.SWAGGER_UI_OAUTH_APP_NAME }}"
+                                });
+                            {%- endif %}
+                        }
+                        $('pre code').each(function(i, e) {
+                            hljs.highlightBlock(e)
+                        });
+                    },
+                    onFailure: function(data) {
+                        log("Unable to Load SwaggerUI");
+                    },
+                    jsonEditor: {{ config.SWAGGER_UI_JSONEDITOR | default(False) | string | lower }},
+                    docExpansion: "{{ config.SWAGGER_UI_DOC_EXPANSION | default('none') }}"
+                });
+                window.swaggerUi.load();
+            });
+        </script>
+    </head>
+  
+    <body class="swagger-section">
+        <div id="header">
+            <div class="swagger-ui-wrap">
+                <a id="logo"><span class="logo__title">NIC Cloud API</span></a>
+                <form id="api_selector">
+                    <div id="auth_container"></div>
+                </form>
+            </div>
+        </div>
+        <div id="message-bar" class="swagger-ui-wrap">&nbsp;</div>
+        <div id="swagger-ui-container" class="swagger-ui-wrap"></div>
+    </body>
+    </html>
+  swagger-ui.html: |
+    <!-- HTML for static distribution bundle build -->
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <title>{{ title }}</title>
+        <style>
+          html
+          {
+            box-sizing: border-box;
+            overflow: -moz-scrollbars-vertical;
+            overflow-y: scroll;
+          }
+  
+          *,
+          *:before,
+          *:after
+          {
+            box-sizing: inherit;
+          }
+  
+          body
+          {
+            margin:0;
+            background: #fafafa;
+          }
+        </style>
+      </head>
+  
+      <body>
+        <div id="swagger-ui"></div>
+        {% include 'swagger-ui-libs.html' %}
+        <script>
+        window.onload = function() {
+  
+          // Build a system
+          const ui = SwaggerUIBundle({
+            url: "https://serviceapi.cloud.gov.in/adminapi/v1/swagger.json",
+            dom_id: '#swagger-ui',
+            deepLinking: true,
+            presets: [
+              SwaggerUIBundle.presets.apis
+            ],
+            plugins: [
+              SwaggerUIBundle.plugins.DownloadUrl
+            ],
+          })
+  
+          window.ui = ui
+        }
+      </script>
+      </body>
+    </html>
+---
+# Source: admin-api/templates/service.yaml
+# service.yaml---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-api
+  namespace: middleware  
+  annotations: 
+  labels:
+    app: admin-api   
+spec:
+  selector:
+    app: admin-api    
+  ports:
+  - name: http
+    port: 5000
+    targetPort: 5000
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: admin-api
+  namespace: middleware
+  labels:
+    app.kubernetes.io/component: admin-api
+    app.kubernetes.io/instance: admin-api
+    app.kubernetes.io/name: admin-api
+spec:
+  tls:
+    - hosts:
+        - serviceapi.cloud.gov.in
+      secretName: sso
+  rules:
+    - host: serviceapi.cloud.gov.in
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              serviceName: admin-api
+              servicePort: 5000
+---
+# Source: admin-api/templates/deployment.yaml
+# deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-api
+  namespace: middleware
+  labels:
+    app: admin-api   
+spec:
+  selector:
+    matchLabels:
+      app: admin-api
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0     
+  replicas: 1
+  template:
+    metadata:  
+      annotations:
+        deployment-timestamp: "20220203113335"        
+      labels:
+        app: admin-api            
+    spec:
+      hostAliases:
+        - ip: 10.246.180.159
+          hostnames:
+            - sso.cloud.gov.in            
+      containers:    
+        - name: admin-api
+          image: chub.cloud.gov.in/service-cloud-dev/admin_sso:latest
+          imagePullPolicy: Always 
+          ports:
+            - name: http
+              containerPort: 5000
+              protocol: TCP
+          volumeMounts:
+            - name: admin-swagger-ui
+              mountPath: /opt/www/app/templates     
+          env:
+            - name: CONSOLE_PROXY
+              value: "https://serviceconsole.cloud.gov.in"
+            - name: SMTP_SERVICE_URL
+              value: "servicecloud-smtp"
+            - name: SMTP_SERVICE_PORT
+              value: "25"
+            - name: FROM_NAME
+              value: "NIC Cloud Services"
+            - name: FROM_EMAIL
+              value: "noreply@cloud.gov.in"
+            - name: FLASK_CONFIG
+              value: "production"
+            - name: DB_HOST
+              value: "postgres-h"
+            - name: DB_PORT
+              value: "5432"
+            - name: NO_PROXY
+              value: sso.cloud.gov.in
+            - name: OIDC_DISCOVERY_URI
+              value: >-
+                https://sso.cloud.gov.in/auth/realms/test-v1/.well-known/openid-configuration
+            - name: OIDC_CLIENT_ID
+              value: adminapis
+            - name: OIDC_CLIENT_SECRET
+              value: lXPnfAaUrGoX542Q5qaHiyZ79MCjMuVW
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: POSTGRES_USER
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: POSTGRES_DB
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: POSTGRES_PASSWORD
+            - name: SMS_SERVICE_USERID
+              valueFrom:
+                secretKeyRef:
+                  name: sms
+                  key: SMS_SERVICE_USERID
+            - name: SMS_SERVICE_USERPIN
+              valueFrom:
+                secretKeyRef:
+                  name: sms
+                  key: SMS_SERVICE_USERPIN
+                                                 
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            
+      volumes:
+        - name: admin-swagger-ui
+          configMap: 
+            name: admin-swagger-ui

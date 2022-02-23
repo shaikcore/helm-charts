@@ -1,0 +1,33 @@
+# Default values for service-cloud.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+#namespace: service-cloud-dev
+
+# Common Labels
+labels:
+  app: "admin"
+
+# Container Configs
+image:
+  repository: "shaikcoredge/admin_sso"
+  pullPolicy: IfNotPresent
+  tag: "latest"
+replicas: "1"
+httpPort: 80
+resources: |
+  requests:
+    cpu: 100m
+    memory: 256Mi
+tracing-enabled: false
+env: |
+  - name: VUE_APP_SOCKET_IO
+    value: "https://servicesocketio.cloud.gov.in"
+  - name: VUE_APP_API_URL
+    value: "https://serviceapi.cloud.gov.in"
+volumes: |
+  - name: frotnendnginx
+    configMap:
+      name: frotnendnginx
+volumeMounts: |
+  - name: frotnendnginx
+    mountPath: /etc/nginx/conf.d
